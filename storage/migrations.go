@@ -33,7 +33,7 @@ func MigrateDB(db *gorm.DB) *gorm.DB {
 
 var migrations = []*gormigrate.Migration{
 	{
-		ID: "2024052540450",
+		ID: "202405260450",
 		Migrate: func(tx *gorm.DB) error {
 			logrus.Println("Creating Reminer table")
 			// copy the struct inside the function,

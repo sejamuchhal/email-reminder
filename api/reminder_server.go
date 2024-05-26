@@ -22,14 +22,31 @@ func (rs *ReminderServer) InitRoutes(r *gin.Engine) {
 	r.GET("/reminders", rs.ListReminders)
 }
 
+type CreateReminderRequest struct {
+	Message     string `form:"message" json:"message" binding:"required,min=3,max=100"`
+	Email       string `form:"email" json:"email" binding:"required,email"`
+	DueDateTime string `form:"due_date_time" json:"due_date_time" binding:"required"`
+}
+
 func (rs *ReminderServer) CreateReminder(c *gin.Context) {
-	var reminder storage.Reminder
-	if err := c.ShouldBindJSON(&reminder); err != nil {
+	var reminderReq CreateReminderRequest
+	if err := c.ShouldBindJSON(&reminderReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	layout := "January 2, 2006 3:04 PM"
+	dueDateTime, err := time.Parse(layout, reminderReq.DueDateTime)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date time format"})
+		return
+	}
+
+	var reminder storage.Reminder
+	reminder.Message = reminderReq.Message
+	reminder.Email = reminderReq.Email
 	reminder.Status = storage.StatusCreated
+	reminder.DueDate = &dueDateTime
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
