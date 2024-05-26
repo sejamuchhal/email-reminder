@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/sejamuchhal/email-reminder/background"
+	"github.com/sejamuchhal/email-reminder/background/worker"
 	"github.com/spf13/cobra"
 )
 
@@ -19,5 +19,5 @@ func newBackgroundCmd() *cobra.Command {
 }
 
 func backgroundCmd(cmd *cobra.Command, args []string) {
-	background.Run()
+	worker.Run()
 }

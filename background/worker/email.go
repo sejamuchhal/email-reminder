@@ -1,4 +1,4 @@
-package background
+package worker
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func NewEmailSender(mailersend_api_key string) *EmailSender {
 	}
 }
 
-func (e *EmailSender) SendEmail(to, subject, body string) (error) {
+func (e *EmailSender) SendEmail(to, subject, body string) (*mailersend.Response, error) {
 
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -42,10 +42,10 @@ func (e *EmailSender) SendEmail(to, subject, body string) (error) {
 	message.SetText(body)
 	message.SetInReplyTo("client-id")
 
-	_, err := e.MailerSendServer.Email.Send(ctx, message)
+	res, err := e.MailerSendServer.Email.Send(ctx, message)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return res, nil
 }

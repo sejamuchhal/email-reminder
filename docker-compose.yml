@@ -5,9 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
-    command: ["api-server" ]
+    command: ./email-reminder api-server
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
@@ -17,27 +17,42 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
-    command: ["background" ]
+    command: ./email-reminder background
+    env_file:
+      - .env
     depends_on:
+      - rabbit1
       - db
 
   db:
     container_name: db
     image: postgres:16-alpine
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
+    env_file:
+      - .env
     ports:
-    - "5433:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
-      timeout: 5s
+      timeout: 15s
+      retries: 5
+
+  rabbit1:
+    image: "rabbitmq:3-management"
+    hostname: "rabbit1"
+    env_file:
+      - .env
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq1"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:15672" ]
+      interval: 30s
+      timeout: 10s
       retries: 5
 
 volumes:

@@ -8,7 +8,7 @@ type ReminderStatus string
 
 const (
 	StatusCreated    ReminderStatus = "created"
-	StatusInProgress ReminderStatus = "progress"
+	StatusInProgress ReminderStatus = "inprogress"
 	StatusSent       ReminderStatus = "sent"
 	StatusFailed     ReminderStatus = "failed"
 	StatusDeleted    ReminderStatus = "deleted"

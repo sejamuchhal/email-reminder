@@ -86,10 +86,25 @@ func (d *Storage) ListReminders(ctx context.Context, limit, offset int, status *
 func (d *Storage) GetRemindersBetween(ctx context.Context, startTime, endTime *time.Time) ([]*Reminder, error) {
 	db := d.mainDB
 	reminders := make([]*Reminder, 0)
-	err := db.Where("status = ? AND due_date BETWEEN ? AND ?", StatusCreated, startTime, endTime).Find(&reminders).Error
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("status = ? AND due_date BETWEEN ? AND ?", StatusCreated, startTime, endTime).Find(&reminders).Error; err != nil {
+			return err
+		}
+
+		for _, reminder := range reminders {
+			if err := tx.Model(&reminder).Update("status", StatusInProgress).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
+
 	return reminders, nil
 }
 

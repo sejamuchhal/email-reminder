@@ -10,7 +10,4 @@ RUN go mod download
 
 COPY . .
 
-
 RUN go build -o email-reminder .
-
-CMD dockerize -wait tcp://go_db:5432 -timeout 1m ./email-reminder
