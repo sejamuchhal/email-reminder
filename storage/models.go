@@ -7,9 +7,11 @@ import (
 type ReminderStatus string
 
 const (
-	StatusCreated ReminderStatus = "created"
-	StatusDeleted ReminderStatus = "deleted"
-	StatusSent    ReminderStatus = "sent"
+	StatusCreated    ReminderStatus = "created"
+	StatusInProgress ReminderStatus = "progress"
+	StatusSent       ReminderStatus = "sent"
+	StatusFailed     ReminderStatus = "failed"
+	StatusDeleted    ReminderStatus = "deleted"
 )
 
 type Reminder struct {

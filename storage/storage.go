@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/sejamuchhal/email-reminder/common"
 	"github.com/sirupsen/logrus"
@@ -11,8 +12,6 @@ import (
 )
 
 var onceConnectAndIndex sync.Once
-
-const DBDialect = "postgres"
 
 type Storage struct {
 	mainDB *gorm.DB
@@ -82,4 +81,21 @@ func (d *Storage) ListReminders(ctx context.Context, limit, offset int, status *
 	// https://github.com/go-gorm/gorm/issues/2994
 	err = db.Limit(-1).Offset(-1).Count(&count).Error
 	return reminders, count, err
+}
+
+func (d *Storage) GetRemindersBetween(ctx context.Context, startTime, endTime *time.Time) ([]*Reminder, error) {
+	db := d.mainDB
+	reminders := make([]*Reminder, 0)
+	err := db.Where("status = ? AND due_date BETWEEN ? AND ?", StatusCreated, startTime, endTime).Find(&reminders).Error
+	if err != nil {
+		return nil, err
+	}
+	return reminders, nil
+}
+
+func (d *Storage) UpdateReminderStatus(ctx context.Context, ID int, status ReminderStatus) (*Reminder, error) {
+	db := d.mainDB
+	reminder := &Reminder{}
+	err := db.Model(&Reminder{}).Where("id = ?", ID).Update("status", status).First(reminder).Error
+	return reminder, err
 }

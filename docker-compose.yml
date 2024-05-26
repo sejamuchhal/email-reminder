@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    command: ["api-server" ]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  background-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    command: ["background" ]
+    depends_on:
+      - db
+
+  db:
+    container_name: db
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+    - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata: {}
