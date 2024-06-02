@@ -57,4 +57,25 @@ var migrations = []*gormigrate.Migration{
 			return tx.Migrator().DropTable("reminders")
 		},
 	},
+	{
+		ID: "202406010430",
+		Migrate: func(tx *gorm.DB) error {
+			logrus.Println("Creating User table")
+			// copy the struct inside the function,
+			// so side effects are prevented if the original struct changes during the time
+			type User struct {
+				gorm.Model
+				Email    string `gorm:"unique" json:"email"`
+				Password string `gorm:"size:100;not null" json:"password"`
+			}
+			if err := tx.Migrator().CreateTable(&User{}); err != nil {
+				tx.Rollback()
+				return err
+			}
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			return tx.Migrator().DropTable("users")
+		},
+	},
 }

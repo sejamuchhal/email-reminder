@@ -2,9 +2,11 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/sejamuchhal/email-reminder/common"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -12,6 +14,7 @@ import (
 )
 
 var onceConnectAndIndex sync.Once
+var ErrUserExists = errors.New("user already exists with this email")
 
 type Storage struct {
 	mainDB *gorm.DB
@@ -113,4 +116,27 @@ func (d *Storage) UpdateReminderStatus(ctx context.Context, ID int, status Remin
 	reminder := &Reminder{}
 	err := db.Model(&Reminder{}).Where("id = ?", ID).Update("status", status).First(reminder).Error
 	return reminder, err
+}
+
+
+func (d *Storage) CreateUser(ctx context.Context, user *User) (*User, error) {
+	db := d.mainDB
+	err := db.Create(user).Error
+
+	if pqErr, ok := err.(*pq.Error); ok {
+		// 23505 is the code for unique violation
+		// ref https://www.postgresql.org/docs/16/errcodes-appendix.html
+		if pqErr.Code == "23505" {
+			return nil, ErrUserExists
+		}
+		return nil, err
+	}
+	return user, err
+}
+
+func (d Storage) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	db := d.mainDB
+	user := &User{}
+	err := db.First(user, "email = ?", email).Error
+	return user, err
 }

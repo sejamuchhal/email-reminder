@@ -16,6 +16,7 @@ type Config struct {
 	MailersendAPIKey string
 	RabbitMQURL      string
 	ReminderQueue    string
+	JWTSecret        string
 }
 
 func ConfigureOrDie() *Config {
@@ -31,6 +32,7 @@ func ConfigureOrDie() *Config {
 	redisPassword := os.Getenv("REDIS_PASSWORD")
 	mailersendAPIKey := os.Getenv("MAILERSEND_API_KEY")
 	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+	jwtSecret := os.Getenv("JWT_SECRET")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
 		GetEnvDefault("POSTGRES_DB_HOST", "localhost"),
@@ -46,6 +48,7 @@ func ConfigureOrDie() *Config {
 		DSN:              dsn,
 		RabbitMQURL:      rabbitMQURL,
 		ReminderQueue:    reminderQueuequeue,
+		JWTSecret:        jwtSecret,
 	}
 	return config
 }
